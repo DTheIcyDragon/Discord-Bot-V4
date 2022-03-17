@@ -5,11 +5,9 @@ from discord.ext import commands
 import settings
 
 
-class modmail(commands.Cog):
+class Modmail(commands.Cog):
     def __init__(self, client):
         self.client = client
-
-
 
     @commands.Cog.listener()
     async def on_message(self, msg):
@@ -31,7 +29,7 @@ class modmail(commands.Cog):
                         await channel.send(embed = picture_em)
 
 
-    @commands.command(name = "message", description = "Messages a given member", aliases = ["msg"])
+    @commands.command(name = "message", help = "Messages a given member", aliases = ["msg"])
     @commands.has_any_role(settings.mod_team)
     async def message_cmd(self, ctx, member: discord.Member, *, msg):
         #sends a dm to a member
@@ -48,13 +46,25 @@ class modmail(commands.Cog):
         await ctx.reply(embed = success_em)
 
 
-    @commands.command(name = "Tagesprophet", description = "Schickt den Tagespropheten in <#883967458497691658>")
+    @commands.command(name = "Tagesprophet", help = "Schickt den Tagespropheten in <#883967458497691658>")
     @commands.is_owner()
-    async def news_cmd(self, ctx, content):
-        channel = await self.client.get_channel(883967458497691658)
-        webhook = discord.Webhook.from_url("https://discord.com/api/webhooks/941403876064653342/dJxx4YGqgQa_I-yA-u4pN-KHXtFe1hPvni5bsz0qO2aNzvejJWBV_Wu9wu8dwUUaSaZy")
-        msg = await webhook.send(content)
+    async def news_cmd(self, ctx, *, content):
+        channel = self.client.get_channel(883967458497691658)
+        webhook = await channel.webhooks()
+        print("a")
+        webhook = discord.utils.get(webhook, name = "Tagesprophet")
+        print("c")
+        if webhook is None:
+              await channel.create_webhook(name="Tagesprophet", avatar="https://static.wikia.nocookie.net/harrypotter/images/a/ad/DailyProphetInsignia.png/revision/latest?cb=20181231200147&path-prefix=de", reason="Webhook for Tagesprophet")
+        print("a")
+        em = discord.Embed(title = "Tagesprophet",
+                           description=content,
+                           color=discord.Color.embed_background())
+        em.set_thumbnail(url="https://static.wikia.nocookie.net/harrypotter/images/a/ad/DailyProphetInsignia.png/revision/latest?cb=20181231200147&path-prefix=de")
+        em.set_footer(text=f"Geschrieben von {ctx.author.display_name}", icon_url=ctx.author.display_avatar)
+        print("b")
+        msg = await webhook.send(embed = em)
         await ctx.reply(f"[Done]({msg.jump_url})")
-        
+
 def setup(client):
-    client.add_cog(modmail(client))
+    client.add_cog(Modmail(client))

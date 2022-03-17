@@ -15,7 +15,7 @@ class Moderation(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name = "clear", description = "Clear's messages in channels", aliases = ["purge"])
+    @commands.command(name = "clear", help = "Clear's messages in channels", aliases = ["purge"])
     @commands.has_any_role(settings.mod_team)
     async def clear_cmd(self, ctx, amount:Optional[int]):
         amount = amount or 100
@@ -53,7 +53,7 @@ class Moderation(commands.Cog):
         channel = self.client.get_channel(channel.id)
         await channel.send(message)
 
-    @commands.command(name = "kick", description = "Kicks a member from the Guild but sends an invite")
+    @commands.command(name = "kick", help = "Kicks a member from the Guild but sends an invite")
     @commands.has_any_role(settings.mod_team)
     async def kick_cmd(self, ctx, member: discord.Member, *, reason):
         invite_channel = self.client.get_channel(settings.welcome_channel)
@@ -72,7 +72,7 @@ class Moderation(commands.Cog):
         await ctx.send(embed = em)
         await channel.send(embed = em)
 
-    @commands.command(name = "ban", description = "Bans a member from the Guild but sends an invite")
+    @commands.command(name = "ban", help = "Bans a member from the Guild but sends an invite")
     @commands.has_any_role(settings.mod_team)
     async def ban_cmd(self, ctx, member: discord.Member, *, reason):
         await member.kick(reason=reason)
@@ -85,11 +85,13 @@ class Moderation(commands.Cog):
         await channel.send(embed = em)
 
 
-    @commands.command(name = "timeout", description = "Timeouts a member")
+    @commands.command(name = "timeout", help = "Timeouts a member")
     @commands.has_any_role(settings.mod_team)
     async def timeout_cmd(self, ctx, member: discord.Member, duration, *, reason):
-        
-        duration = duration.replace(",", ".")
+        try:
+            duration = duration.content.replace(",", ".")
+        except:
+            pass
         if duration.endswith("s"):
             delta = datetime.timedelta(seconds=float(duration[:-1]))
             await member.timeout_for(duration=delta)
@@ -103,8 +105,9 @@ class Moderation(commands.Cog):
             delta = datetime.timedelta(days=float(duration[:-1]))
             await member.timeout_for(duration=delta)
         if duration.endswith("w"):
-            delta = datetime.timedelta(weeks=float(duration[:-1]))
-            await member.timeout_for(duration=delta)
+            if float(duration[:-1]) > 4:
+                delta = datetime.timedelta(weeks=int(duration[:-1]))
+                await member.timeout_for(duration=delta)
     
         em = discord.Embed(title = "**Timeout**", description = f"Reason: **{reason}**", color = discord.Color.brand_red())
         em.set_author(name = ctx.author.display_name, icon_url = ctx.author.display_avatar)
@@ -114,13 +117,12 @@ class Moderation(commands.Cog):
         await ctx.send(embed = em)
         await channel.send(embed = em)
         
-
-    @commands.command(name="register", description="Registers the guild to work on.")
+    @commands.command(name="register", help = "Registers the guild to work on.")
     @commands.has_any_role(settings.mod_team)
     async def register_cmd(self, ctx):
-        with open("bot_data/channel_exceptions.json", "r") as r:
+        with open("bot_data/data/channel_exceptions.json", "r") as r:
             loads = json.load(r)
-        with open("bot_data/channel_exceptions.json", "w") as w:
+        with open("bot_data/data/channel_exceptions.json", "w") as w:
             for channel in ctx.guild.channels:
                 if channel.type == discord.ChannelType.text:
                     loads[str(channel.id)] = "0"
@@ -134,19 +136,19 @@ class Moderation(commands.Cog):
 
             await ctx.reply(embed=em)
 
-    @commands.command(name = "exclude_channel", description = "Adds a channel that won't be unlocked")
+    @commands.command(name = "exclude_channel", help = "Adds a channel that won't be unlocked")
     @commands.has_any_role(settings.mod_team)
     async def exclude_channel_add_cmd(self, ctx, channel: discord.TextChannel):
-        with open("bot_data/channel_exceptions.json", "r") as f:
+        with open("bot_data/data/channel_exceptions.json", "r") as f:
             loads = json.load(f)
-        with open("bot_data/channel_exceptions.json", "w") as w:
+        with open("bot_data/data/channel_exceptions.json", "w") as w:
             loads[str(channel.id)] = "1"
             json.dump(loads, w, indent = 4)
             em = discord.Embed(color=discord.Color.yellow())
             em.set_author(name = f"{ctx.author.display_name} removed {channel.name} from the unlock.", icon_url=ctx.author.display_avatar)
             await ctx.reply(embed = em)
 
-    @commands.command(name = "shutdown", description = "Shuts all text channel")
+    @commands.command(name = "shutdown", help = "Shuts all text channel")
     @commands.has_any_role(settings.mod_team)
     async def lock_cmd(self, ctx):
         role = ctx.guild.get_role(settings.verified)
@@ -161,12 +163,12 @@ class Moderation(commands.Cog):
         em.set_author(name = f"🔒 Server lockdown by {ctx.author.display_name} 🔒", icon_url = ctx.author.display_avatar)
         await ctx.reply(embed = em)
 
-    @commands.command(name="unlock", description="Unlocks all text channel")
+    @commands.command(name="unlock", help = "Unlocks all text channel")
     @commands.has_any_role(settings.mod_team)
     async def unlock_cmd(self, ctx):
         role = ctx.guild.get_role(settings.verified)
         lock = []
-        with open("bot_data/channel_exceptions.json", "r") as f:
+        with open("bot_data/data/channel_exceptions.json", "r") as f:
             loads = json.load(f)
         for channel in ctx.guild.channels:
             if channel.type == discord.ChannelType.text:
