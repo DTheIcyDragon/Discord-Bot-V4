@@ -1,0 +1,11 @@
+{
+    "cogs": {
+        "moderation": "1",
+        "fun": "1",
+        "modmail": "1",
+        "utilitie": "1",
+        "dnd": "1",
+        "level": "0",
+        "test": "1"
+    }
+}

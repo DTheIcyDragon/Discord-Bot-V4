@@ -14,7 +14,7 @@ class Utilitie(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name = "userinfo", description = "Displays information about a user", aliases=["uinfo"])
+    @commands.command(name = "userinfo", help = "Displays information about a user", aliases=["uinfo"])
     async def userinfo_cmd(self,ctx , member : discord.Member):
 
         joined_at = member.joined_at
